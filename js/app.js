@@ -1,21 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
     
-    loadApi();
 
-    function loadApi(){
+    var _url = 'https://my-json-server.typicode.com/pirmansh/database/db';
+
+    function renderPage(data){
     
-        const xhr = new XMLHttpRequest();
+        // const xhr = new XMLHttpRequest();
+        // xhr.onreadystatechange = function(){
+        //     if (this.readyState == 4) {
+        //         if (this.status != 200) return;
     
-        xhr.open('GET', 'https://my-json-server.typicode.com/pirmansh/database/db', true);
-    
-        xhr.onload = function(){
-            if(this.status === 200){
-    
-                const response = JSON.parse(this.responseText);
+        //         const response = JSON.parse(this.responseText);
 
                 let content = '';
     
-                response.blogs.forEach( function( item ) {
+                data.blogs.forEach( function( item ) {
                 
                  content += `
                     <article class="box">
@@ -33,9 +32,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById('blogs').innerHTML = content;
 
-            }
-        }
-        xhr.send();
+        //     }
+        // // }
+        // // xhr.open('GET', _url, true);
+        // // xhr.send();
     }
+
+
+    var netReceive = false;
+
+    var netUpdate = fetch(_url).then(function(res){
+        return res.json()
+    }).then(function(data){
+        netReceive = true;
+        renderPage(data);
+    })
+
+
+
+    caches.match(_url).then(function(res){
+        if(!res) throw Error('no data on cache')
+        return res.json()
+    }).then(function(data){
+        if(!netReceive){
+            renderPage(data)
+            console.log('render from cache')
+        }
+    }).catch(function(){
+        return netUpdate;
+    })
 
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sub1";
+const CACHE_NAME = "cache-v1";
 var urlsToCache = [
     "/",
     "/nav.html",
@@ -13,6 +13,7 @@ var urlsToCache = [
     "/js/nav.js",
     "/js/app.js",
     "/manifest.json",
+    "/fall.json",
     "/img/icons/android-icon-144x144.png",
     "/img/icons/android-icon-192x192.png",
     "/img/icons/android-icon-36x36.png",
@@ -45,11 +46,10 @@ self.addEventListener("activate", function (event) {
     event.waitUntil(
         caches.keys().then(function (cacheNames) {
             return Promise.all(
-                cacheNames.map(function (cacheName) {
-                    if (cacheName != CACHE_NAME) {
-                        console.log("ServiceWorker: cache " + cacheName + " dihapus");
-                        return caches.delete(cacheName);
-                    }
+                cacheNames.filter(function(cacheName){
+                    return cacheName != CACHE_NAME
+                }).map(function(cacheName){
+                    return caches.delete(cacheName)
                 })
             );
         })
@@ -57,22 +57,53 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
-    event.respondWith(
-        caches
-        .match(event.request, {
-            cacheName: CACHE_NAME
-        })
-        .then(function (response) {
-            if (response) {
-                console.log("ServiceWorker: Gunakan aset dari cache: ", response.url);
-                return response;
-            }
 
-            console.log(
-                "ServiceWorker: Memuat aset dari server: ",
-                event.request.url
-            );
-            return fetch(event.request);
-        })
-    );
+    var request = event.request;
+    var url = new URL(request.url);
+
+    if(url.origin === location.origin){
+        event.respondWith(
+
+            caches.match(request).then(function(response){
+                return response || fetch(request)
+            })
+
+        );
+    } else {
+
+        event.respondWith(
+            caches.open('blog-cache').then(function(cache){
+                return fetch(request).then(function(LiveResp){
+                    cache.put(request, LiveResp.clone())
+                    return LiveResp
+                }).catch(function(){
+                    return caches.match(request).then(function(response){
+                        if(response) return response
+                        return caches.match('/fall.json')
+                    })
+                })
+            })
+        )
+    }
+
+
+
+    // event.respondWith(
+    //     caches
+    //     .match(event.request, {
+    //         cacheName: CACHE_NAME
+    //     })
+    //     .then(function (response) {
+    //         if (response) {
+    //             console.log("ServiceWorker: Gunakan aset dari cache: ", response.url);
+    //             return response;
+    //         }
+
+    //         console.log(
+    //             "ServiceWorker: Memuat aset dari server: ",
+    //             event.request.url
+    //         );
+    //         return fetch(event.request);
+    //     })
+    // );
 });
