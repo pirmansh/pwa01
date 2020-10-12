@@ -28,6 +28,9 @@ var urlsToCache = [
     "/img/icons/apple-icon-72x72.png",
     "/img/icons/apple-icon-60x60.png",
     "/img/icons/apple-icon-57x57.png",
+    "/img/icons/favicon-16x16.png",
+    "/img/icons/favicon-32x32.png",
+    "/img/icons/",
     "/icon.png",
     "/img/banner/banner.svg",
     "/img/banner/banner-footer.svg"
@@ -58,32 +61,29 @@ self.addEventListener("activate", function (event) {
 
 self.addEventListener("fetch", function (event) {
 
-    var request = event.request;
-    var url = new URL(request.url);
+    var req = event.request;
+    var url = new URL(req.url);
 
     if(url.origin === location.origin){
         event.respondWith(
-
-            caches.match(request).then(function(response){
-                return response || fetch(request)
+            caches.match(req).then(function(res){
+                return res || fetch(req)
             })
-
         );
     } else {
-
         event.respondWith(
             caches.open('blog-cache').then(function(cache){
-                return fetch(request).then(function(LiveResp){
-                    cache.put(request, LiveResp.clone())
+                return fetch(req).then(function(LiveResp){
+                    cache.put(req, LiveResp.clone())
                     return LiveResp
                 }).catch(function(){
-                    return caches.match(request).then(function(response){
-                        if(response) return response
+                    return caches.match(req).then(function(res){
+                        if(res) return res
                         return caches.match('/fall.json')
                     })
                 })
             })
-        )
+        );
     }
 
 

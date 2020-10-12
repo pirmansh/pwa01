@@ -1,18 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
     
-
     var _url = 'https://my-json-server.typicode.com/pirmansh/database/db';
 
     function renderPage(data){
-    
-        // const xhr = new XMLHttpRequest();
-        // xhr.onreadystatechange = function(){
-        //     if (this.readyState == 4) {
-        //         if (this.status != 200) return;
-    
-        //         const response = JSON.parse(this.responseText);
 
-                let content = '';
+                var content = '';
     
                 data.blogs.forEach( function( item ) {
                 
@@ -27,18 +19,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         <a href="#" class="btn light-blue link">read more</a>
                     </article>
                     `;
-            
             });
 
             document.getElementById('blogs').innerHTML = content;
-
-        //     }
-        // // }
-        // // xhr.open('GET', _url, true);
-        // // xhr.send();
     }
-
-
     var netReceive = false;
 
     var netUpdate = fetch(_url).then(function(res){
@@ -46,20 +30,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }).then(function(data){
         netReceive = true;
         renderPage(data);
-    })
-
-
+    });
 
     caches.match(_url).then(function(res){
-        if(!res) throw Error('no data on cache')
+        if(!res) throw Error('belum ada data di cache')
         return res.json()
     }).then(function(data){
         if(!netReceive){
             renderPage(data)
-            console.log('render from cache')
+            console.log('render daricache')
         }
     }).catch(function(){
         return netUpdate;
-    })
-
+    });
 });
